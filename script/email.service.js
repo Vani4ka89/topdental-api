@@ -1,16 +1,14 @@
 import nodemailer from 'nodemailer';
-import {configs} from "../configs/configs";
-// import * as path from "node:path";
-// import hbs from "nodemailer-express-handlebars";
-import {EEmailActions} from "../enums/email-actions.enum";
-// import {emailTemplates} from "../constants/email.constants";
+// const path = require("path");
+// const hbs = require("nodemailer-express-handlebars");
+// const { emailTemplates } = require("../constants/email.constants");
 
 const transporter = nodemailer.createTransport({
     from: "No reply",
     service: 'gmail',
     auth: {
         user: 'ivan.tym4ak@gmail.com',
-        pass: 'djljvxdukglxdvau',
+        pass: 'djljvxdukglxdvau', // Варто зберігати цей пароль в змінних оточення!
     }
 });
 
@@ -28,23 +26,18 @@ const transporter = nodemailer.createTransport({
 // // Інтеграція шаблонів з Nodemailer
 // transporter.use('compile', hbs(hbsOptions));
 
-export const emailService = {
-    sendMail: async (to: string, emailAction: EEmailActions, context: {
-        name: string,
-        phoneNumber: string,
-        comment?: string,
-        date?: string
-    }) => {
-        let text: string;
+const emailService = {
+    sendMail: async (to, emailAction, context) => {
+        let text = '';
 
-        if (context?.comment) {
+        if (context.comment) {
             text = `Зателефонуйте мені за номером: ${context.phoneNumber}, Коментар: ${context.comment}`;
-        } else if (context?.date) {
+        } else if (context.date) {
             text = `Зателефонуйте мені за номером: ${context.phoneNumber}, Бажана дата: ${context.date}`;
         }
 
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: process.env.EMAIL_USER || 'ivan.tym4ak@gmail.com',
             to,
             subject: `Привіт, я ${context.name}`,
             text
@@ -69,3 +62,5 @@ export const emailService = {
         // return await transporter.sendMail(mailOptions);
     }
 };
+
+export default emailService;
