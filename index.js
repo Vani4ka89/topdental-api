@@ -17,7 +17,7 @@ const HOST = process.env.HOST || '';
 app.use(express.static('./public'));
 
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
+    res.sendFile(path.resolve(process.cwd(), 'public', 'index.html'));
 });
 
 app.post('/users/first_form', async (req, res) => {
