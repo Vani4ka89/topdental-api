@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 30px;
+            margin: 0 auto;
+            border: 1px solid #eaeaea;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            background-color: #007bff;
+            border-radius: 12px 12px 0 0;
+            color: white;
+        }
+
+        .header img {
+            width: 150px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .content {
+            padding: 20px;
+            line-height: 1.8;
+        }
+
+        .content h2 {
+            color: #0056b3;
+            font-size: 22px;
+        }
+
+        .details {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .details p {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        .details strong {
+            color: #0056b3;
+        }
+
+        .footer {
+            text-align: center;
+            color: #aaa;
+            font-size: 13px;
+            padding: 10px;
+            border-top: 1px solid #eaeaea;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #218838;
+        }
+
+        @media (max-width: 600px) {
+            .email-container {
+                padding: 15px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 15px 0;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="header">
+        <h1>Top Dental</h1>
+    </div>
+    <div class="content">
+        <h2>Інформація запису</h2>
+        <p>Вітаю, мене звати <strong>{{patientName}}</strong>,</p>
+        <p>Хочу до вас на консультацію.</p>
+
+        <div class="details">
+            <p><strong>Мій номер телефону:</strong> {{phoneNumber}}</p>
+            {{#if appointmentDate}}
+                <p><strong>Бажана дата:</strong> {{appointmentDate}}</p>
+            {{/if}}
+            {{#if comment}}
+                <p><strong>Коментар:</strong> {{comment}}</p>
+            {{/if}}
+        </div>
+
+        <p>
+            <a href="tel:{{phoneNumber}}" class="btn">Зателефонувати</a>
+        </p>
+    </div>
+    <div class="footer">
+        <p>Клініка Top Dental, А. Монастирського 40, Тернопіль</p>
+        <p>&copy; 2024 Top Dental. All rights reserved.</p>
+    </div>
+</div>
+</body>
+</html>

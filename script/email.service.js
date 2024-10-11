@@ -1,56 +1,45 @@
 import nodemailer from 'nodemailer';
-// const path = require("path");
-// const hbs = require("nodemailer-express-handlebars");
-// const { emailTemplates } = require("../constants/email.constants");
+import hbs from "nodemailer-express-handlebars";
+import * as path from "node:path";
 
 const transporter = nodemailer.createTransport({
     from: "No reply",
     service: 'gmail',
     auth: {
         user: 'ivan.tym4ak@gmail.com',
-        pass: 'djljvxdukglxdvau', // Варто зберігати цей пароль в змінних оточення!
+        pass: 'djljvxdukglxdvau',
     }
 });
 
-// const hbsOptions = {
-//     viewEngine: {
-//         extname: '.hbs',
-//         layoutsDir: path.join(__dirname, 'email-templates', 'layouts'),
-//         defaultLayout: 'main', // Основний шаблон
-//         partialsDir: path.join(__dirname, 'email-templates', 'partials'),
-//     },
-//     viewPath: path.join(__dirname, 'email-templates', 'views'), // Шлях до шаблонів
-//     extName: '.hbs',
-// };
-//
-// // Інтеграція шаблонів з Nodemailer
-// transporter.use('compile', hbs(hbsOptions));
+transporter.use('compile', hbs({
+    viewEngine: {
+        extname: '.hbs',
+        partialsDir: path.join(process.cwd(), './views'),
+        defaultLayout: false,
+    },
+    viewPath: path.join(process.cwd(), './views'),
+    extName: '.hbs',
+}));
 
 const emailService = {
     sendMail: async (to, emailAction, context) => {
-        let text = '';
-
-        if (context.comment) {
-            text = `Зателефонуйте мені за номером: ${context.phoneNumber}, Коментар: ${context.comment}`;
-        } else if (context.date) {
-            text = `Зателефонуйте мені за номером: ${context.phoneNumber}, Бажана дата: ${context.date}`;
-        }
-
         const mailOptions = {
-            from: process.env.EMAIL_USER || 'ivan.tym4ak@gmail.com',
+            from: 'Top Dental <ivan.tym4ak@gmail.com>',
             to,
-            subject: `Привіт, я ${context.name}`,
-            text
+            subject: context.name,
+            template: 'appointment',
+            context: {
+                patientName: context.name,
+                phoneNumber: context.phoneNumber,
+                appointmentDate: context.date,
+                comment: context.comment
+            },
+            // attachments: [{
+            //     filename: 'logo_small.png',
+            //     path: path.join(process.cwd(), 'views', 'image', 'logo_small.png'),
+            //     cid: 'logo@topdental'
+            // }]
         };
-
-        // const {templateName, subject} = emailTemplates[emailAction];
-        // const mailOptions = {
-        //     to,
-        //     subject,
-        //     template: templateName,
-        //     context,
-        //     text
-        // };
 
         try {
             const info = await transporter.sendMail(mailOptions);
@@ -58,8 +47,6 @@ const emailService = {
         } catch (error) {
             console.error('Помилка при відправці email:', error);
         }
-
-        // return await transporter.sendMail(mailOptions);
     }
 };
 
