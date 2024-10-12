@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cors({ origin: /https:\/\/(\w+\.)?topdental\.te\.ua$/ }));
 
-const email = 'topdentalternopil@gmail.com';
+const email = 'ivan.tym4ak@gmail.com';
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '';
 
