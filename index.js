@@ -8,16 +8,16 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-app.use(cors({origin: true}))
+app.use(cors({ origin: /https:\/\/(\w+\.)?topdental\.te\.ua$/ }));
 
 const email = 'ivan.tym4ak@gmail.com';
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '';
 
-app.use(express.static('./public'));
+app.use(express.static('public'));
 
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve(process.cwd(), 'public', 'index.html'));
+    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
 });
 
 app.post('/users/first_form', async (req, res) => {
