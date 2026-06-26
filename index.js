@@ -37,10 +37,22 @@ const adminPassword =
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// app.use(
+//     cors({
+//         origin: /https:\/\/(\w+\.)?topdental\.te\.ua$/,
+//         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//     })
+// );
+
 app.use(
     cors({
-        origin: /https:\/\/(\w+\.)?topdental\.te\.ua$/,
+        origin: [
+            'https://topdental.te.ua',
+            'https://www.topdental.te.ua',
+            'https://topdental-api-2a1bf2e56e90.herokuapp.com/'
+        ],
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Password'],
     })
 );
 
