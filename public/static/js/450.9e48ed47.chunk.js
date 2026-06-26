@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunktopdental_site=self.webpackChunktopdental_site||[]).push([[450],{3450:(e,s,t)=>{t.r(s),t.d(s,{ServicesPage:()=>a});var c=t(7676),i=t(4840),n=t(579);const a=()=>{const{content:e}=(0,i.HZ)();return(0,n.jsxs)("main",{className:"main",children:[(0,n.jsx)(c.G$,{canonicalPath:"/services",description:e.seo.services.description,schema:(0,i.ws)(e),title:e.seo.services.title}),(0,n.jsx)(c.xC,{}),(0,n.jsx)(c.R1,{})]})}}}]);
+//# sourceMappingURL=450.9e48ed47.chunk.js.map
