@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import jwt from 'jsonwebtoken';
 
 import emailService from './script/email.service.js';
 
@@ -12,23 +13,20 @@ const app = express();
    CONFIG
 ======================= */
 
-// const EMAIL = 'topdentalternopil@gmail.com';
 const EMAIL = 'ivan.tym4ak@gmail.com';
-
 
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '';
 
-const CONTENT_PORT = process.env.CONTENT_PORT || PORT;
+const JWT_SECRET =
+    process.env.JWT_SECRET || 'topdental-secret-key';
+
+const adminPassword =
+    process.env.ADMIN_PASSWORD || 'topdental-admin';
 
 const contentFile =
     process.env.CONTENT_FILE ||
     path.resolve(process.cwd(), 'data/site-content.json');
-
-const adminPassword =
-    process.env.CONTENT_ADMIN_PASSWORD ||
-    process.env.REACT_APP_ADMIN_PASSWORD ||
-    'topdental-admin';
 
 /* =======================
    MIDDLEWARE
@@ -37,22 +35,11 @@ const adminPassword =
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// app.use(
-//     cors({
-//         origin: /https:\/\/(\w+\.)?topdental\.te\.ua$/,
-//         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-//     })
-// );
-
 app.use(
     cors({
-        origin: [
-            'https://topdental.te.ua',
-            'https://www.topdental.te.ua',
-            'https://topdental-api-2a1bf2e56e90.herokuapp.com/'
-        ],
+        origin: '*', // можна обмежити доменом пізніше
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Password'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
     })
 );
 
@@ -97,39 +84,45 @@ app.post('/users/second_form', async (req, res) => {
 });
 
 /* =======================
-   CONTENT API
+   AUTH (JWT)
 ======================= */
 
-const jsonParser = express.json({
-    limit: '50mb',
-    strict: false,
-    type: () => true,
+app.post('/auth/login', (req, res) => {
+    const { password } = req.body;
+
+    if (password !== adminPassword) {
+        return res.status(401).json({ error: 'Wrong password' });
+    }
+
+    const token = jwt.sign(
+        { role: 'admin' },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+    );
+
+    res.json({ token });
 });
 
-const getRequestPassword = (req) => {
-    const header = req.get('x-admin-password');
-    const auth = req.get('authorization') || '';
-
-    if (header) return header;
-    if (auth.startsWith('Bearer ')) return auth.slice(7);
-
-    return '';
-};
-
-const isAuthorized = (req) =>
-    getRequestPassword(req) === adminPassword;
-
 const requireAdmin = (req, res, next) => {
-    if (!isAuthorized(req)) {
-        return res.status(401).json({ error: 'Unauthorized' });
+    const auth = req.headers.authorization;
+
+    if (!auth || !auth.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No token' });
     }
-    next();
+
+    const token = auth.slice(7);
+
+    try {
+        jwt.verify(token, JWT_SECRET);
+        next();
+    } catch (e) {
+        return res.status(401).json({ error: 'Invalid token' });
+    }
 };
 
-const asyncHandler =
-    (fn) =>
-        (req, res, next) =>
-            Promise.resolve(fn(req, res, next)).catch(next);
+/* =======================
+   CONTENT API
+======================= */
 
 const readContent = async () => {
     try {
@@ -144,49 +137,45 @@ const readContent = async () => {
 const writeContent = async (data) => {
     await fs.mkdir(path.dirname(contentFile), { recursive: true });
 
-    const tmp = `${contentFile}.tmp`;
-
-    await fs.writeFile(tmp, JSON.stringify(data, null, 2), 'utf8');
-    await fs.rename(tmp, contentFile);
+    await fs.writeFile(
+        contentFile,
+        JSON.stringify(data, null, 2),
+        'utf8'
+    );
 };
 
 const removeContent = async () => {
     await fs.rm(contentFile, { force: true });
 };
 
-app.get('/content', asyncHandler(async (req, res) => {
+app.get('/content', async (req, res) => {
     res.json(await readContent());
-}));
+});
 
-app.put(
-    '/content',
-    requireAdmin,
-    jsonParser,
-    asyncHandler(async (req, res) => {
-        await writeContent(req.body);
-        res.json({ ok: true });
-    })
-);
-
-app.delete(
-    '/content',
-    requireAdmin,
-    asyncHandler(async (req, res) => {
-        await removeContent();
-        res.json({ ok: true });
-    })
-);
-
-app.post('/auth', requireAdmin, (req, res) => {
+app.put('/content', requireAdmin, async (req, res) => {
+    await writeContent(req.body);
     res.json({ ok: true });
 });
+
+app.delete('/content', requireAdmin, async (req, res) => {
+    await removeContent();
+    res.json({ ok: true });
+});
+
+app.post('/auth/check', requireAdmin, (req, res) => {
+    res.json({ ok: true });
+});
+
+/* =======================
+   HEALTH
+======================= */
 
 app.get('/health', (req, res) => {
     res.json({ ok: true });
 });
 
 /* =======================
-   REACT (IMPORTANT: LAST)
+   REACT FALLBACK (LAST)
 ======================= */
 
 app.get('*', (req, res) => {
@@ -202,17 +191,10 @@ app.get('*', (req, res) => {
 app.use((err, req, res, next) => {
     console.error(err);
 
-    if (res.headersSent) {
-        return next(err);
-    }
+    if (res.headersSent) return next(err);
 
-    const status =
-        err?.type === 'entity.too.large'
-            ? 413
-            : err?.status || err?.statusCode || 500;
-
-    res.status(status).json({
-        error: err instanceof Error ? err.message : 'Server error',
+    res.status(500).json({
+        error: err.message || 'Server error',
     });
 });
 
