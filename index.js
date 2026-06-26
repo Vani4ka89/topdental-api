@@ -12,7 +12,9 @@ const app = express();
    CONFIG
 ======================= */
 
-const EMAIL = 'topdentalternopil@gmail.com';
+// const EMAIL = 'topdentalternopil@gmail.com';
+const EMAIL = 'ivan.tym4ak@gmail.com';
+
 
 const PORT = process.env.PORT || 3001;
 const HOST = process.env.HOST || '';
